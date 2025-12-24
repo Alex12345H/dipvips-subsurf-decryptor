@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Subway Surfers Profile Decryptor & Encryptor 🌸</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<!-- GitHub Pages safe -->
+<base href="./">
+
+<!-- CSS -->
+<link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Subway Surfers Profile Decryptor & Encryptor 🌸</h1>
+
+    <div class="toolbar">
+        <div class="file-group">
+            <span class="file-label">FILE 1</span>
+            <input type="file" id="fileIn1">
+        </div>
+
+        <div id="file2Container" class="file-group" style="display:none;">
+            <span class="file-label">FILE 2</span>
+            <input type="file" id="fileIn2">
+        </div>
+
+        <div class="input-group">
+            <label>filename:</label>
+            <input type="text" id="nInput" value="profile.json">
+        </div>
+
+        <button class="b-purple" onclick="toggleFull()">📺 FULL</button>
+        <button class="b-purple" onclick="changeVersion()">🔢 VER</button>
+        <button class="b-blue" onclick="toggleSplit()">🪓 SPLIT</button>
+        <button class="b-blue" onclick="toggleTree()">🌳 TREE</button>
+    </div>
+
+    <div id="toast">Ready</div>
+
+    <div class="workspace" id="ws">
+        <div class="pane active" id="p1" onclick="setActive('ed1')">
+            <div class="edit-controls">
+                <button class="ctrl-btn" onclick="handleUndo('ed1')">↩</button>
+                <button class="ctrl-btn" onclick="handleRedo('ed1')">↪</button>
+            </div>
+            <textarea id="ed1" placeholder="Enter your profile.json data here..."></textarea>
+            <div id="tree1" class="tree-box"></div>
+        </div>
+
+        <div class="pane" id="p2" style="display:none;" onclick="setActive('ed2')">
+            <div class="edit-controls">
+                <button class="ctrl-btn" onclick="handleUndo('ed2')">↩</button>
+                <button class="ctrl-btn" onclick="handleRedo('ed2')">↪</button>
+            </div>
+            <textarea id="ed2"></textarea>
+            <div id="tree2" class="tree-box"></div>
+        </div>
+    </div>
+
+    <div class="main-actions">
+        <button id="decBtn" onclick="runDecrypt()">🔓 DECRYPT PROFILE DATA</button>
+        <div style="display:flex; gap:8px;">
+            <button class="b-orange" style="flex:2" onclick="runEncrypt()">🔒 ENCRYPT</button>
+            <button class="b-green" style="flex:1" onclick="runSave()">⬇️ SAVE</button>
+        </div>
+    </div>
+
+    <div class="credit-footer">
+        Subway Surfers Profile JSON Editor<br>
+        Credits: discord.gg/nghc84wjSZ
+    </div>
+</div>
+
+<div id="ctxMenu"></div>
+
+<!-- JS -->
+<script src="./app.js" defer></script>
+
+</body>
+</html>
