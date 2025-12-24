@@ -1,17 +1,94 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Subway Surfers Profile Decryptor & Encryptor 🌸</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+    /* 500 DPI UI - HIGH FIDELITY MOBILE SCALING */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #0a0e14; color: #e1e8f0; font-family: sans-serif; margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    
+    .container { 
+        flex: 1; display: flex; flex-direction: column; 
+        background: #161c27; border-radius: 12px; border: 2px solid #2d3748; padding: 12px; overflow: hidden;
+    }
+    
+    h1 { text-align: center; font-size: 16px; color: #00d2ff; margin: 0 0 10px 0; font-weight: bold; }
 
-<!-- GitHub Pages safe -->
-<base href="./">
+    /* TOOLBAR */
+    .toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; background: #1e2633; padding: 10px; border-radius: 8px; margin-bottom: 10px; flex-shrink: 0; }
+    .file-group { display: flex; flex-direction: column; gap: 4px; }
+    .file-label { font-size: 9px; color: #00d2ff; font-weight: bold; }
+    .input-group { display: flex; align-items: center; background: #000; border: 1px solid #00d2ff; border-radius: 4px; padding: 4px 8px; }
+    .input-group label { color: #00d2ff; font-weight: bold; font-size: 10px; margin-right: 5px; }
+    .input-group input { background: transparent; color: #32cd32; border: none; outline: none; font-weight: bold; font-size: 12px; width: 100%; }
 
-<!-- CSS -->
-<link rel="stylesheet" href="./style.css">
+    button { border: none; border-radius: 6px; padding: 10px; font-weight: bold; cursor: pointer; font-size: 11px; color: white; text-transform: uppercase; flex-shrink: 0; }
+    .b-blue { background: #3182ce; }
+    .b-purple { background: #6b46c1; }
+    .b-green { background: #2f855a; }
+    .b-orange { background: #c05621; }
+
+    /* UNDO/REDO CORNER BUTTONS */
+    .edit-controls { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 5; }
+    .ctrl-btn { background: rgba(0, 210, 255, 0.2); border: 1px solid #00d2ff; color: #00d2ff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .ctrl-btn:active { background: #00d2ff; color: #000; }
+
+    /* TREE ENGINE STYLING */
+    .t-node { margin-left: 15px; border-left: 1px solid #444; padding-left: 8px; margin-top: 4px; position: relative; }
+    .t-row { display: flex; align-items: center; border-radius: 4px; padding: 4px; border: 1px solid transparent; transition: 0.2s; }
+    .t-row:active { background: rgba(0, 210, 255, 0.2); border-color: #00d2ff; }
+    .t-key { background: transparent; color: #ce9178; border: none; font-weight: bold; font-size: 13px; outline: none; cursor: pointer; pointer-events: none; }
+    .t-val { background: #1e2633; color: #4ec9b0; border: 1px solid #333; border-radius: 3px; font-size: 13px; padding: 2px 5px; outline: none; pointer-events: none; }
+    .t-toggle { cursor: pointer; color: #ffd700; margin-right: 5px; font-size: 12px; width: 15px; display: inline-block; text-align: center; }
+    .t-toggle::before { content: '▶'; }
+    .t-toggle.open::before { content: '▼'; }
+    .t-kids { display: none; margin-bottom: 5px; }
+    .t-kids.show { display: block; }
+
+    /* PROFESSIONAL CONTEXT MENU (Json Editor Online Style) */
+    #ctxMenu { 
+        display: none; position: fixed; z-index: 10000; background: #252526; 
+        border: 1px solid #454545; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        min-width: 200px; padding: 5px 0;
+    }
+    .ctx-item { padding: 10px 15px; color: #cccccc; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+    .ctx-item:active { background: #094771; color: white; }
+    .ctx-sep { border-bottom: 1px solid #454545; margin: 5px 0; }
+    .ctx-label { display: flex; align-items: center; gap: 10px; }
+    .ctx-icon { width: 16px; text-align: center; color: #00d2ff; font-weight: bold; }
+    .ctx-hint { font-size: 10px; opacity: 0.5; color: #aaa; }
+
+    /* TOAST */
+    #toast { visibility: hidden; min-width: 180px; background: #00d2ff; color: #000; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%); font-weight: bold; box-shadow: 0 4px 15px rgba(0,210,255,0.4); pointer-events: none; }
+    #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2s; }
+    @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 80px; opacity: 1; } }
+    @keyframes fadeout { from { bottom: 80px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+    /* WORKSPACE */
+    .workspace { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+    .workspace.split-active { display: grid; grid-template-rows: 1fr 1fr; }
+    .pane { position: relative; display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; border: 2px solid transparent; border-radius: 10px; }
+    .pane.active { border-color: #00d2ff; }
+    
+    textarea, .tree-box { 
+        flex: 1; background: #0d1117; color: #9cdcfe; border: none;
+        padding: 12px; font-family: monospace; 
+        font-size: 13px; overflow-y: auto !important; overflow-x: auto; resize: none; 
+        white-space: pre-wrap; word-wrap: break-word; -webkit-overflow-scrolling: touch;
+    }
+    .tree-box { display: none; white-space: nowrap; background: #0d1117; }
+
+    .main-actions { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; flex-shrink: 0; }
+    #decBtn { padding: 15px; font-size: 14px; background: #00d2ff; color: #000; width: 100%; border-radius: 10px; }
+
+    .credit-footer { 
+        margin-top: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; 
+        font-size: 10px; color: #aaa; border: 1px solid #333; text-align: center; flex-shrink: 0;
+    }
+</style>
 </head>
-
 <body>
 
 <div class="container">
@@ -20,26 +97,20 @@
     <div class="toolbar">
         <div class="file-group">
             <span class="file-label">FILE 1</span>
-            <input type="file" id="fileIn1">
+            <input type="file" id="fileIn1" style="font-size: 10px; color: #aaa;">
         </div>
-
         <div id="file2Container" class="file-group" style="display:none;">
             <span class="file-label">FILE 2</span>
-            <input type="file" id="fileIn2">
+            <input type="file" id="fileIn2" style="font-size: 10px; color: #aaa;">
         </div>
-
-        <div class="input-group">
-            <label>filename:</label>
-            <input type="text" id="nInput" value="profile.json">
-        </div>
-
+        <div class="input-group"><label>filename:</label><input type="text" id="nInput" value="profile.json"></div>
         <button class="b-purple" onclick="toggleFull()">📺 FULL</button>
         <button class="b-purple" onclick="changeVersion()">🔢 VER</button>
         <button class="b-blue" onclick="toggleSplit()">🪓 SPLIT</button>
         <button class="b-blue" onclick="toggleTree()">🌳 TREE</button>
     </div>
 
-    <div id="toast">Ready</div>
+    <div id="toast">Decrypted! 🔓</div>
 
     <div class="workspace" id="ws">
         <div class="pane active" id="p1" onclick="setActive('ed1')">
@@ -47,38 +118,278 @@
                 <button class="ctrl-btn" onclick="handleUndo('ed1')">↩</button>
                 <button class="ctrl-btn" onclick="handleRedo('ed1')">↪</button>
             </div>
-            <textarea id="ed1" placeholder="Enter your profile.json data here..."></textarea>
+            <textarea id="ed1" placeholder="Enter your profile.json data here..." oninput="saveStep('ed1')"></textarea>
             <div id="tree1" class="tree-box"></div>
         </div>
-
         <div class="pane" id="p2" style="display:none;" onclick="setActive('ed2')">
             <div class="edit-controls">
                 <button class="ctrl-btn" onclick="handleUndo('ed2')">↩</button>
                 <button class="ctrl-btn" onclick="handleRedo('ed2')">↪</button>
             </div>
-            <textarea id="ed2"></textarea>
+            <textarea id="ed2" placeholder="Enter your profile.json data here..." oninput="saveStep('ed2')"></textarea>
             <div id="tree2" class="tree-box"></div>
         </div>
     </div>
 
     <div class="main-actions">
-        <button id="decBtn" onclick="runDecrypt()">🔓 DECRYPT PROFILE DATA</button>
+        <button class="b-blue" id="decBtn" onclick="runDecrypt()">🔓 DECRYPT PROFILE DATA</button>
         <div style="display:flex; gap:8px;">
-            <button class="b-orange" style="flex:2" onclick="runEncrypt()">🔒 ENCRYPT</button>
+            <button class="b-orange" style="flex:2" onclick="runEncrypt()">🔒 ENCRYPT PROFILE DATA</button>
             <button class="b-green" style="flex:1" onclick="runSave()">⬇️ SAVE</button>
+            <button onclick="copyAll()" style="position:fixed; bottom:20px; right:20px; background:#00d2ff; color:#000; padding:12px; border-radius:50px; font-weight:bold; z-index:9999; border:none; box-shadow:0 4px 10px rgba(0,0,0,0.5);">📋 COPY ALL</button>
         </div>
     </div>
 
-    <div class="credit-footer">
-        Subway Surfers Profile JSON Editor<br>
-        Credits: discord.gg/nghc84wjSZ
+   <div class="credit-footer">
+        Hey Welcome to Subway Surfers Profile JSON file editor. Max Size:2MB <br>
+        Credits:- <a href="https://discord.gg/nghc84wjSZ" target="_blank">https://discord.gg/nghc84wjSZ by @lea0o0oo @herrerde @noobgamer0111 @moddedmcplayer</a>
     </div>
 </div>
 
-<div id="ctxMenu"></div>
+<div id="ctxMenu">
+    <div class="ctx-item" onclick="ctxCmd('edit')"><div class="ctx-label"><span class="ctx-icon">✎</span> Edit Value</div></div>
+    <div class="ctx-item" onclick="ctxCmd('ren')"><div class="ctx-label"><span class="ctx-icon">≣</span> Edit Key</div></div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="ctxCmd('addV')"><div class="ctx-label"><span class="ctx-icon">+</span> Add Value</div><span class="ctx-hint">str/num</span></div>
+    <div class="ctx-item" onclick="ctxCmd('obj')"><div class="ctx-label"><span class="ctx-icon">{}</span> Add Object</div></div>
+    <div class="ctx-item" onclick="ctxCmd('arr')"><div class="ctx-label"><span class="ctx-icon">[]</span> Add Array</div></div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="ctxCmd('dup')"><div class="ctx-label"><span class="ctx-icon">❐</span> Duplicate</div></div>
+    <div class="ctx-item" onclick="ctxCmd('rem')"><div class="ctx-label"><span class="ctx-icon">🗑</span> Remove</div></div>
+</div>
 
-<!-- JS -->
-<script src="./app.js" defer></script>
+<script>
+const K = new Uint8Array([57,114,107,120,67,80,108,106,83,77,49,71,86,81,104,87,119,49,114,49,114,75,79,72,71,99,99,98,50,105,74,53]);
+let isSplit = false, isTree = false;
+let activeEditor = document.getElementById('ed1');
+let stacks = { ed1: [""], ed2: [""] }, currentIdx = { ed1: 0, ed2: 0 };
+let fileNames = { ed1: "profile.json", ed2: "profile.json" };
+let ctxTarget = null;
+let openPaths = new Set(); 
 
+function copyAll() {
+    activeEditor.select();
+    document.execCommand('copy');
+    showToast("Copied everything! ✅");
+}
+
+function setActive(id) {
+    activeEditor = document.getElementById(id);
+    document.getElementById('p1').classList.toggle('active', id === 'ed1');
+    document.getElementById('p2').classList.toggle('active', id === 'ed2');
+    document.getElementById('nInput').value = fileNames[id];
+}
+
+document.getElementById('ed1').onfocus = () => setActive('ed1');
+document.getElementById('ed2').onfocus = () => setActive('ed2');
+
+function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.innerText = msg;
+    toast.classList.add("show");
+    setTimeout(() => { toast.classList.remove("show"); }, 2000);
+}
+
+function openCtx(e, target) {
+    e.preventDefault(); e.stopPropagation();
+    ctxTarget = target;
+    const menu = document.getElementById('ctxMenu');
+    menu.style.display = 'block';
+    let x = e.clientX || (e.touches ? e.touches[0].clientX : 100);
+    let y = e.clientY || (e.touches ? e.touches[0].clientY : 100);
+    if (x + 200 > window.innerWidth) x -= 200;
+    if (y + 350 > window.innerHeight) y -= 350;
+    menu.style.left = x + 'px'; menu.style.top = y + 'px';
+}
+
+window.onclick = () => document.getElementById('ctxMenu').style.display = 'none';
+
+function parseVal(v) {
+    if(v === "true") return true; 
+    if(v === "false") return false;
+    if(v === "null") return null;
+    if(!isNaN(v) && v.trim() !== "") return Number(v);
+    return v;
+}
+
+function ctxCmd(op) {
+    const { obj, k, pId, root } = ctxTarget;
+    if (op === 'edit') {
+        const v = prompt("New Value:", obj[k]);
+        if (v !== null) obj[k] = parseVal(v);
+    } else if (op === 'ren') {
+        const nk = prompt("New Key Name:", k);
+        if (nk && nk !== k) { obj[nk] = obj[k]; delete obj[k]; }
+    } else if (op === 'addV') {
+        const nk = prompt("Key Name:", "new_key");
+        if(nk) obj[nk] = "new_value";
+    } else if (op === 'obj') {
+        const nk = prompt("Object Key Name:", "new_object");
+        if(nk) obj[nk] = {};
+    } else if (op === 'arr') {
+        const nk = prompt("Array Key Name:", "new_array");
+        if(nk) obj[nk] = [];
+    } else if (op === 'dup') {
+        const copy = JSON.parse(JSON.stringify(obj[k]));
+        Array.isArray(obj) ? obj.splice(parseInt(k)+1, 0, copy) : obj[k+"_copy"] = copy;
+    } else if (op === 'rem') {
+        Array.isArray(obj) ? obj.splice(k, 1) : delete obj[k];
+    }
+    
+    sync(pId, root);
+    refreshTreeOnly();
+}
+
+async function runDecrypt() {
+    try {
+        const outer = JSON.parse(activeEditor.value);
+        const key = await crypto.subtle.importKey("raw", K, {name: "AES-CBC"}, false, ["decrypt"]);
+        const enc = Uint8Array.from(atob(outer.data), c => c.charCodeAt(0));
+        const dec = await crypto.subtle.decrypt({name: "AES-CBC", iv: new Uint8Array(16)}, key, enc);
+        const inner = JSON.parse(new TextDecoder().decode(dec));
+        activeEditor.value = JSON.stringify({ version: outer.version || 2, data: inner }, null, 2);
+        saveStep(activeEditor.id);
+        showToast("Decrypted! 🔓");
+    } catch(e) { showToast("Error: Decrypt Failed ❌"); }
+}
+
+async function runEncrypt() {
+    try {
+        const obj = JSON.parse(activeEditor.value);
+        const key = await crypto.subtle.importKey("raw", K, {name: "AES-CBC"}, false, ["encrypt"]);
+        const enc = await crypto.subtle.encrypt({name: "AES-CBC", iv: new Uint8Array(16)}, key, new TextEncoder().encode(JSON.stringify(obj.data)));
+        activeEditor.value = JSON.stringify({ version: obj.version || 2, data: btoa(String.fromCharCode(...new Uint8Array(enc))) });
+        saveStep(activeEditor.id);
+        showToast("Encrypted! 🔒");
+    } catch(e) { showToast("Error: Invalid JSON ❌"); }
+}
+
+function toggleTree() {
+    isTree = !isTree;
+    refreshTreeOnly();
+}
+
+function refreshTreeOnly() {
+    const panes = [{ed: 'ed1', tree: 'tree1', id: 1}, {ed: 'ed2', tree: 'tree2', id: 2}];
+    panes.forEach(p => {
+        const ed = document.getElementById(p.ed);
+        const tr = document.getElementById(p.tree);
+        if (isTree && ed.value) {
+            try {
+                const data = JSON.parse(ed.value);
+                ed.style.display = 'none';
+                tr.style.display = 'block';
+                tr.innerHTML = "";
+                tr.appendChild(buildNodes(data, p.id, data, "root"));
+            } catch (e) { isTree = false; alert("Invalid JSON for Tree Mode"); }
+        } else {
+            ed.style.display = 'block';
+            tr.style.display = 'none';
+        }
+    });
+}
+
+function buildNodes(obj, pId, root, path) {
+    const f = document.createDocumentFragment();
+    for (let k in obj) {
+        const currentPath = path + "." + k;
+        const node = document.createElement('div'); node.className = 't-node';
+        const row = document.createElement('div'); row.className = 't-row';
+        
+        // JSON Editor Online Style: Clicking line opens options
+        row.onclick = (e) => openCtx(e, {obj, k, pId, root});
+
+        const kI = document.createElement('span'); kI.className = 't-key'; kI.innerText = k;
+
+        if (obj[k] !== null && typeof obj[k] === 'object') {
+            const t = document.createElement('span'); t.className = 't-toggle';
+            if(openPaths.has(currentPath)) t.classList.add('open');
+            
+            const kids = document.createElement('div'); kids.className = 't-kids';
+            if(openPaths.has(currentPath)) kids.classList.add('show');
+            
+            t.onclick = (e) => { 
+                e.stopPropagation(); 
+                const isOpen = t.classList.toggle('open'); 
+                kids.classList.toggle('show');
+                isOpen ? openPaths.add(currentPath) : openPaths.delete(currentPath);
+            };
+            
+            kids.appendChild(buildNodes(obj[k], pId, root, currentPath));
+            row.prepend(t);
+            row.append(kI);
+            node.append(row, kids);
+        } else {
+            const vI = document.createElement('span'); vI.className = 't-val'; vI.innerText = ": " + JSON.stringify(obj[k]);
+            row.append(kI, vI);
+            node.append(row);
+        }
+        f.appendChild(node);
+    }
+    return f;
+}
+
+function sync(pId, root) {
+    const id = 'ed' + pId;
+    document.getElementById(id).value = JSON.stringify(root, null, 2);
+    saveStep(id);
+}
+
+function saveStep(id) {
+    const v = document.getElementById(id).value;
+    if (v === stacks[id][currentIdx[id]]) return;
+    stacks[id] = stacks[id].slice(0, currentIdx[id] + 1);
+    stacks[id].push(v); currentIdx[id] = stacks[id].length - 1;
+}
+
+function handleUndo(id) { if(currentIdx[id]>0){ currentIdx[id]--; document.getElementById(id).value=stacks[id][currentIdx[id]]; refreshTreeOnly(); } }
+function handleRedo(id) { if(currentIdx[id]<stacks[id].length-1){ currentIdx[id]++; document.getElementById(id).value=stacks[id][currentIdx[id]]; refreshTreeOnly(); } }
+
+function changeVersion() {
+    try {
+        const obj = JSON.parse(activeEditor.value);
+        let v = prompt("Version (1-100):", obj.version || 2);
+        if(v) { obj.version = parseInt(v); activeEditor.value = JSON.stringify(obj, null, 2); saveStep(activeEditor.id); refreshTreeOnly(); showToast("Version Changed!"); }
+    } catch(e) { alert("Decrypt first!"); }
+}
+
+function toggleSplit() {
+    isSplit = !isSplit; isTree = false;
+    document.getElementById('ws').classList.toggle('split-active', isSplit);
+    document.getElementById('file2Container').style.display = isSplit ? 'flex' : 'none';
+    document.getElementById('p2').style.display = isSplit ? 'flex' : 'none';
+    if(isSplit && !document.getElementById('ed2').value) { 
+        document.getElementById('ed2').value = document.getElementById('ed1').value; 
+        fileNames.ed2 = fileNames.ed1;
+        saveStep('ed2'); 
+    }
+}
+
+function runSave() {
+    const fileName = document.getElementById('nInput').value;
+    fileNames[activeEditor.id] = fileName;
+    const a = document.createElement('a'); 
+    a.href = URL.createObjectURL(new Blob([activeEditor.value]));
+    a.download = fileName; 
+    a.click();
+    showToast("Saved: " + fileName);
+}
+
+function toggleFull() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+
+document.getElementById('fileIn1').onchange = (e) => {
+    const f = e.target.files[0]; if(!f) return;
+    fileNames.ed1 = f.name;
+    if (activeEditor.id === 'ed1') document.getElementById('nInput').value = f.name;
+    const r = new FileReader(); r.onload = (ev) => { document.getElementById('ed1').value = ev.target.result; saveStep('ed1'); refreshTreeOnly(); }; r.readAsText(f);
+};
+document.getElementById('fileIn2').onchange = (e) => {
+    const f = e.target.files[0]; if(!f) return;
+    fileNames.ed2 = f.name;
+    if (activeEditor.id === 'ed2') document.getElementById('nInput').value = f.name;
+    const r = new FileReader(); r.onload = (ev) => { document.getElementById('ed2').value = ev.target.result; saveStep('ed2'); refreshTreeOnly(); }; r.readAsText(f);
+};
+document.getElementById('nInput').oninput = (e) => { fileNames[activeEditor.id] = e.target.value; };
+</script>
 </body>
 </html>
